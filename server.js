@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 
+import userRoutes from './routes/users.js';
 import taskRoutes from './routes/tasks.js';
 import habitRoutes from './routes/habits.js';
 import moodRoutes from './routes/moods.js';
@@ -23,6 +24,7 @@ app.get("/", (req, res) => {
 });
 
 // Routes
+app.use('/api/users', userRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/habits', habitRoutes);
 app.use('/api/moods', moodRoutes);
