@@ -1,9 +1,9 @@
-import mongoose from "mongoose";
+import { Schema, model } from "mongoose";
 
-const MoodSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User'},
+const MoodSchema = new Schema({
+  userId: { type: Schema.Types.ObjectId, required: true, ref: 'User'},
   rating: { type: Number },
   entryDate: { type: Date }
 });
 
-export default mongoose.model('Mood', MoodSchema);
+export default model('Mood', MoodSchema);

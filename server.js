@@ -11,13 +11,20 @@ dotenv.config();
 connectDB();
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+const PORT = process.env.PORT || 5000;
+
+// Middleware
+app.use(cors()); // Allow React frontend to connect
+app.use(express.json()); // Parse JSON requests
+
+// Test route
+app.get("/", (req, res) => {
+  res.send("Backend is running 🚀");
+});
 
 // Routes
 app.use('/api/tasks', taskRoutes);
 app.use('/api/habits', habitRoutes);
 app.use('/api/moods', moodRoutes);
 
-const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
