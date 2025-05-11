@@ -1,3 +1,7 @@
 # Node
 node_modules
 **/node_modules
+
+# Personal notes/wants
+wants.txt
+**/wants.txt
