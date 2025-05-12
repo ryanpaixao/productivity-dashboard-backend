@@ -5,3 +5,4 @@ node_modules
 # Personal notes/wants
 wants.txt
 **/wants.txt
+rest-test-*.http
