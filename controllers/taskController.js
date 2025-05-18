@@ -31,6 +31,20 @@ export const updateTask = async (req, res) => {
   }
 };
 
+// Toggle completed value of existing Task
+export const toggleTask = async (req, res) => {
+  try {
+    const task = await Task.findByIdAndUpdate(
+      req.params.id,
+      { $set: { completed: req.body.completed }},
+      { new: true } // Return the updated document
+    );
+    res.status(200).json(task); // Frontend cache updates automatically
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
 // Delete an existing Task
 export const deleteTask = async (req, res) => {
   try {
