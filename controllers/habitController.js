@@ -32,6 +32,20 @@ export const updateHabit = async (req, res) => {
   }
 };
 
+// Toggle completed value of existing Habit
+export const toggleHabit = async (req, res) => {
+  try {
+    const habit = await Habit.findByIdAndUpdate(
+      req.params.id,
+      { $set: { completed: req.body.completed }},
+      { new: true } // Return the updated document
+    );
+    res.status(200).json(habit); // Frontend cache updates automatically
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
 // Delete an existing Habit
 export const deleteHabit = async (req, res) => {
   try {
