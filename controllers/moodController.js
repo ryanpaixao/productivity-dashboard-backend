@@ -1,4 +1,5 @@
 import Mood from '../models/Mood.js';
+import { getAggregatedRatings } from '../services/ratingService.js';
 
 // Get all Moods
 export const getMoods = async (req, res) => {
@@ -7,6 +8,28 @@ export const getMoods = async (req, res) => {
     res.status(200).json(moods);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+// Get Mood Trends
+export const getMoodTrends = async (req, res) => {
+  try {
+    const { startDate, endDate, aggregation = 'daily' } = req.query;
+
+    // Validatee dates
+    if (!startDate || !endDate) {
+      return res.status(400).json({ error: 'startDate and endDate are required' });
+    }
+
+    const results = await getAggregatedRatings(
+      new Date(startDate),
+      new Date(endDate),
+      aggregation
+    );
+
+    res.status(200).json(results);
+  } catch (err) {
+    res.status(500).json(({ error: err.message }));
   }
 };
 
