@@ -52,7 +52,7 @@ const getDateProjection = (aggregationType) => {
     case 'weekly':
       return { $dateToString: { format:"%Y-%U", date: "$createdAt" } };
     case 'monthly':
-      return { $dateToString: { format: "%Y-%m", date: "$createAt" } };
+      return { $dateToString: { format: "%Y-%m", date: "$createdAt" } };
     default:
       throw new Error('Invalid aggregation type');
   }
