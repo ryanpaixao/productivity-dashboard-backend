@@ -1,11 +1,13 @@
+import mongoose from 'mongoose';
 import Mood from '../models/Mood.js';
 
-const getAggregatedRatings = async (startDate, endDate, aggregationType) => {
+const getAggregatedRatings = async (userId, startDate, endDate, granularity) => {
   const aggregationPipeline = [];
 
   // 1. Match ratings within date range
   aggregationPipeline.push({
     $match: {
+      userId: new mongoose.Types.ObjectId(userId), // TODO: Look into non-deprecated alternative
       createdAt: {
         $gte: startDate,
         $lte: endDate
@@ -14,7 +16,7 @@ const getAggregatedRatings = async (startDate, endDate, aggregationType) => {
   });
 
   // 2. Group by time period
-  const dateProjection = getDateProjection(aggregationType);
+  const dateProjection = getDateProjection(granularity);
 
   aggregationPipeline.push({
     $group: {
@@ -45,8 +47,8 @@ const getAggregatedRatings = async (startDate, endDate, aggregationType) => {
   return await Mood.aggregate(aggregationPipeline);
 };
 
-const getDateProjection = (aggregationType) => {
-  switch (aggregationType) {
+const getDateProjection = (granularity) => {
+  switch (granularity) {
     case 'daily':
       return { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } };
     case 'weekly':
@@ -54,7 +56,7 @@ const getDateProjection = (aggregationType) => {
     case 'monthly':
       return { $dateToString: { format: "%Y-%m", date: "$createdAt" } };
     default:
-      throw new Error('Invalid aggregation type');
+      throw new Error('Invalid granularity type');
   }
 };
 

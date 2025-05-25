@@ -14,7 +14,7 @@ export const getMoods = async (req, res) => {
 // Get Mood Trends
 export const getMoodTrends = async (req, res) => {
   try {
-    const { startDate, endDate, aggregation = 'daily' } = req.query;
+    const { userId, startDate, endDate, granularity = 'daily' } = req.query;
 
     // Validatee dates
     if (!startDate || !endDate) {
@@ -22,9 +22,10 @@ export const getMoodTrends = async (req, res) => {
     }
 
     const results = await getAggregatedRatings(
+      userId,
       new Date(startDate),
       new Date(endDate),
-      aggregation
+      granularity
     );
 
     res.status(200).json(results);
