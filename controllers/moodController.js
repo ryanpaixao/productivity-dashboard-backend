@@ -16,8 +16,8 @@ export const getMoodTrends = async (req, res) => {
   try {
     const { userId, startDate, endDate, granularity = 'daily' } = req.query;
 
-    // Validatee dates
-    if (!startDate || !endDate) {
+    // Validate dates
+    if (!startDate || !endDate) { // TODO: Make more robust
       return res.status(400).json({ error: 'startDate and endDate are required' });
     }
 

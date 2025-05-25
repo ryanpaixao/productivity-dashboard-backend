@@ -9,8 +9,8 @@ const getAggregatedRatings = async (userId, startDate, endDate, granularity) => 
     $match: {
       userId: new mongoose.Types.ObjectId(userId), // TODO: Look into non-deprecated alternative
       createdAt: {
-        $gte: startDate,
-        $lte: endDate
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
       }
     }
   });
@@ -20,27 +20,45 @@ const getAggregatedRatings = async (userId, startDate, endDate, granularity) => 
 
   aggregationPipeline.push({
     $group: {
-      _id: dateProjection,
+      _id: {
+        $dateTrunc: {
+          date: '$createdAt',
+          unit: 'day' // Group by day // TODO: Update when dealing with other granularity(s)
+        }
+      },
       date: { $first: dateProjection },
       averageRating: { $avg: "$rating" },
       minRating: { $min: "$rating" },
       maxRating: { $max: "$rating" },
-      ratingCount: { $sum: 1 }
+      count: { $sum: 1 },
+      entries: { $push: '$$ROOT' } // Keep raw entries for time-based charts
     }
   });
 
-  // 3. Sort by date
+  // 3. Fill in missing dates
+  aggregationPipeline.push({
+    $densify: {
+      field: '_id', // a Date, not a string
+      range: {
+        step: 1,
+        unit: 'day', // TODO: Update when dealing with other granularity(s)
+        bounds: [new Date(startDate), new Date(endDate)]
+      }
+    }
+  });
+
+  // 4. Sort by date
   aggregationPipeline.push({ $sort: { _id: 1 }});
 
-  // 4. Project final format
+  // 5. Project final format
   aggregationPipeline.push({
     $project: {
       _id: 0,
-      date: 1,
+      date: getDateProjection(granularity), // Date converted to string
       averageRating: { $round: ["$averageRating", 2] },
       minRating: 1,
       maxRating: 1,
-      ratingCount: 1
+      count: { $ifNull: ['$count', 0] }, // Default to 0 if missing
     }
   });
 
@@ -48,16 +66,13 @@ const getAggregatedRatings = async (userId, startDate, endDate, granularity) => 
 };
 
 const getDateProjection = (granularity) => {
-  switch (granularity) {
-    case 'daily':
-      return { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } };
-    case 'weekly':
-      return { $dateToString: { format:"%Y-%U", date: "$createdAt" } };
-    case 'monthly':
-      return { $dateToString: { format: "%Y-%m", date: "$createdAt" } };
-    default:
-      throw new Error('Invalid granularity type');
-  }
+  const format = {
+    daily: '%Y-%m-%d',
+    weekly: '%Y-%U',
+    monthly: '%Y-%m'
+  }[granularity] || '%Y-%m-%d';
+  
+  return { $dateToString: { format, date: '$_id' } };
 };
 
 export { getAggregatedRatings };
