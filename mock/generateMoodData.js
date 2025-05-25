@@ -11,15 +11,15 @@ import Mood from '../models/Mood.js';
 const populateDatabase = async () => {
   await mongoose.connect('mongodb://localhost:27017/tracker');
   
-  const startDate = new Date('2023-08-01');
-  const endDate = new Date('2023-08-30');
+  const startDate = new Date('2024-05-01');
+  const endDate = new Date('2025-05-23');
   const users = Array.from({length: 5}, (_, i) => new mongoose.Types.ObjectId());
   const ratings = [];
   
   // Generate realistic patterns (higher ratings on weekends)
   for (let day = new Date(startDate); day <= endDate; day.setDate(day.getDate() + 1)) {
     const isWeekend = [0, 6].includes(day.getDay());
-    const baseRating = isWeekend ? 3.5 : 3.0;
+    const baseRating = isWeekend ? 3.5 : 2.3;
     
     // 2-8 ratings per day
     const ratingsCount = Math.floor(Math.random() * 6) + 2;
@@ -35,7 +35,8 @@ const populateDatabase = async () => {
       );
       
       ratings.push({
-        userId: users[Math.floor(Math.random() * users.length)],
+        // userId: users[Math.floor(Math.random() * users.length)],
+        userId: '6820e188c8970fadd5b3d4ce',
         rating,
         createdAt: new Date(ratingTime)
       });
