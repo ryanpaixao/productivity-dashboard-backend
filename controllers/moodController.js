@@ -1,5 +1,7 @@
 import Mood from '../models/Mood.js';
-import { getAggregatedRatings } from '../services/ratingService.js';
+import { getDailyAverages, getWeeklyAverages, getMonthlyAverages, getYearlyAverages } from '../services/ratingService.js';
+
+import { DATE_GRANULARITY } from '../constants/DATE_GRANULARITY.js';
 
 // Get all Moods
 export const getMoods = async (req, res) => {
@@ -11,20 +13,57 @@ export const getMoods = async (req, res) => {
   }
 };
 
-// Get Mood Trends
-export const getMoodTrends = async (req, res) => {
+// Get Mood Trends Daily
+export const getMoodTrendsDaily = async (req, res) => {
   try {
-    const { userId, startDate, endDate, granularity = 'daily' } = req.query;
-
-    // Validate dates
-    if (!startDate || !endDate) { // TODO: Make more robust
-      return res.status(400).json({ error: 'startDate and endDate are required' });
-    }
-
-    const results = await getAggregatedRatings(
+    const { userId, granularity = DATE_GRANULARITY.DAILY } = req.query;
+    const results = await getDailyAverages(
       userId,
-      new Date(startDate),
-      new Date(endDate),
+      granularity
+    );
+
+    res.status(200).json(results);
+  } catch (err) {
+    res.status(500).json(({ error: err.message }));
+  }
+};
+
+// GET Mood Trends Weekly
+export const getMoodTrendsWeekly = async (req, res) => {
+  try {
+    const { userId, granularity = DATE_GRANULARITY.WEEKLY } = req.query;
+    const results = await getWeeklyAverages(
+      userId,
+      granularity
+    );
+
+    res.status(200).json(results);
+  } catch (err) {
+    res.status(500).json(({ error: err.message }));
+  }
+};
+
+// GET Mood Trends Monthly
+export const getMoodTrendsMonthly = async (req, res) => {
+  try {
+    const { userId, granularity = DATE_GRANULARITY.MONTHLY } = req.query;
+    const results = await getMonthlyAverages(
+      userId,
+      granularity
+    );
+
+    res.status(200).json(results);
+  } catch (err) {
+    res.status(500).json(({ error: err.message }));
+  }
+};
+
+// GET Mood Trends Yearly
+export const getMoodTrendsYearly = async (req, res) => {
+  try {
+    const { userId, granularity = DATE_GRANULARITY.YEARLY } = req.query;
+    const results = await getYearlyAverages(
+      userId,
       granularity
     );
 
