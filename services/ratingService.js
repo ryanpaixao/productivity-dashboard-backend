@@ -1,61 +1,138 @@
+import mongoose from 'mongoose';
 import Mood from '../models/Mood.js';
 
-const getAggregatedRatings = async (startDate, endDate, aggregationType) => {
-  const aggregationPipeline = [];
+// Constants
+import { NUM_OF_DAYS } from '../constants/DATE_GRANULARITY.js';
 
-  // 1. Match ratings within date range
-  aggregationPipeline.push({
-    $match: {
-      createdAt: {
-        $gte: startDate,
-        $lte: endDate
+const getDailyAverages = async (userId, granularity) => {
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - NUM_OF_DAYS[granularity]);
+
+  return await Mood.aggregate([
+    {
+      $match: {
+        userId: new mongoose.Types.ObjectId(userId),
+        createdAt: { $gte: startDate }
+      }
+    },
+    {
+      $project: {
+        date: {
+          $dateToString: {
+            format: '%Y-%m-%d',
+            date: {
+              $add: ['$createdAt', 60 * 1000]
+            }
+          }
+        },
+        rating: 1
+      }
+    },
+    {
+      $group: {
+        _id: '$date',
+        date: { $first: '$date' },
+        averageRating: { $avg: '$rating' },
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { date: 1 }
+    }
+  ])
+};
+
+const getWeeklyAverages = async (userId, granularity) => {
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - NUM_OF_DAYS[granularity] * 7)
+
+  return await Mood.aggregate([
+    {
+      $match: {
+        userId: new mongoose.Types.ObjectId(userId),
+        createdAt: { $gte: startDate }
+      }
+    },
+    {
+      $project: {
+        year: { $year: { $add: ['$createdAt', 60 * 1000] } },
+        week: { $week: { $add: ['$createdAt', 60 * 1000] } },
+        rating: 1
+      }
+    },
+    {
+      $group: {
+        _id: { year: '$year', week: '$week' },
+        year: { $first: '$year' },
+        week: { $first: '$week' },
+        averageRating: { $avg: '$rating' },
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $sort: {
+        '_id.year': 1, '_id.week': 1
       }
     }
-  });
-
-  // 2. Group by time period
-  const dateProjection = getDateProjection(aggregationType);
-
-  aggregationPipeline.push({
-    $group: {
-      _id: dateProjection,
-      date: { $first: dateProjection },
-      averageRating: { $avg: "$rating" },
-      minRating: { $min: "$rating" },
-      maxRating: { $max: "$rating" },
-      ratingCount: { $sum: 1 }
-    }
-  });
-
-  // 3. Sort by date
-  aggregationPipeline.push({ $sort: { _id: 1 }});
-
-  // 4. Project final format
-  aggregationPipeline.push({
-    $project: {
-      _id: 0,
-      date: 1,
-      averageRating: { $round: ["$averageRating", 2] },
-      minRating: 1,
-      maxRating: 1,
-      ratingCount: 1
-    }
-  });
-
-  return await Mood.aggregate(aggregationPipeline);
+  ])
 };
 
-const getDateProjection = (aggregationType) => {
-  switch (aggregationType) {
-    case 'daily':
-      return { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } };
-    case 'weekly':
-      return { $dateToString: { format:"%Y-%U", date: "$createdAt" } };
-    case 'monthly':
-      return { $dateToString: { format: "%Y-%m", date: "$createdAt" } };
-    default:
-      throw new Error('Invalid aggregation type');
-  }
+const getMonthlyAverages = async (userId, granularity) => {
+  const startDate = new Date();
+  startDate.setMonth(startDate.getMonth() - NUM_OF_DAYS[granularity]);
+
+  return await Mood.aggregate([
+    {
+      $match: {
+        userId: new mongoose.Types.ObjectId(userId),
+        createdAt: { $gte: startDate }
+      }
+    },
+    {
+      $project: {
+        year: { $year: { $add: [ '$createdAt', 60 * 1000] } },
+        month: { $month: { $add: ['$createdAt', 60 * 1000] } },
+        rating: 1
+      }
+    },
+    {
+      $group: {
+        _id: { year: '$year', month: '$month' },
+        year: { $first: '$year' },
+        month: { $first: '$month' },
+        averageRating: { $avg: '$rating' },
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { '_id.year': 1, '_id.month': 1 }
+    }
+  ]);
 };
 
-export { getAggregatedRatings };
+const getYearlyAverages = async (userId, granularity) => {
+  return await Mood.aggregate([
+    {
+      $match: {
+        userId: new mongoose.Types.ObjectId(userId)
+      }
+    },
+    {
+      $project: {
+        year: { $year: '$createdAt' },
+        rating: 1
+      }
+    },
+    {
+      $group: {
+        _id: '$year',
+        year: { $first: '$year' },
+        averageRating: { $avg: '$rating' },
+        count: { $sum: 1 }
+      }
+    },
+    { $sort: { year: 1 } }
+  ]);
+};
+
+export { getDailyAverages, getWeeklyAverages, getMonthlyAverages, getYearlyAverages };
