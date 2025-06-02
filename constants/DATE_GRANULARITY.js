@@ -14,11 +14,11 @@ const TIME_UNIT = {
 };
 
 const NUM_OF_DAYS = {
-  interday: '1',
-  daily: '30',
-  weekly: '7',
-  monthly: '12',
-  yearly: '365'
+  interday: 1,
+  daily: 30,
+  weekly: 7,
+  monthly: 12,
+  yearly: 365
 };
 
 export { DATE_GRANULARITY, NUM_OF_DAYS, TIME_UNIT };

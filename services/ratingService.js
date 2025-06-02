@@ -4,11 +4,14 @@ import Mood from '../models/Mood.js';
 // Constants
 import { NUM_OF_DAYS } from '../constants/DATE_GRANULARITY.js';
 
+// Utils
+import { fillMissingDays } from './utils/fillMissingDays.ts';
+
 const getDailyAverages = async (userId, granularity) => {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - NUM_OF_DAYS[granularity]);
 
-  return await Mood.aggregate([
+  const aggregatedData = await Mood.aggregate([
     {
       $match: {
         userId: new mongoose.Types.ObjectId(userId),
@@ -40,6 +43,8 @@ const getDailyAverages = async (userId, granularity) => {
       $sort: { date: 1 }
     }
   ])
+
+  return fillMissingDays(aggregatedData, startDate);
 };
 
 const getWeeklyAverages = async (userId, granularity) => {

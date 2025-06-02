@@ -1,9 +1,21 @@
-import { MoodEntry } from "../../types/mood";
-
 // Utils
-import { isValidDate } from "../../utils/isValidDate";
+import { isValidDate } from "../../utils/isValidDate.ts";
 
-const fillMissingDays = (data: MoodEntry[], startDate: string | Date) => {
+interface MoodEntry {
+  _id: string;
+  date: Date; // Can be ISO string or Date object
+  averageRating: number; // Mood rating (1-5)
+  count?: number; // Optional aggregation count
+};
+
+interface FilledMoodEntry {
+  date: string;
+  averageRating: number | null;
+  _id: string | null; // Will be null for filled days
+  count: number | null; // Will be null for filled days
+}
+
+const fillMissingDays = (data: MoodEntry[], startDate: Date) => {
   if (data.length === 0) return [];
 
   // Validate Dates
@@ -11,30 +23,38 @@ const fillMissingDays = (data: MoodEntry[], startDate: string | Date) => {
   const areValidDates = isValidDate(startDate) && isValidDate(endDate) && startDate < endDate;
   if (!areValidDates) throw new Error('Error: End Date should come after Start Date.');
 
-  // Create a map of existing data for quick lookup
-  const dataMap = new Map(
-    data.map(entry => [
-      new Date(entry.createdAt).toISOString().split('T')[0],
-      entry.rating
-    ])
-  );
+  // Create Map with full entry data
+  const dataMap = new Map<string, Omit<MoodEntry, 'date'> & { date: Date }>();
+  data.forEach(entry => {
+    const date = typeof entry.date === 'string' ? new Date(entry.date) : entry.date;
+    const dateKey = date.toISOString().split('T')[0];
+    dataMap.set(dateKey, {
+      _id: entry._id,
+      averageRating: entry.averageRating,
+      count: entry.count || 1, // Default count to 1 if not provided
+      date: entry.date // Storing Date object now
+    })
+  });
 
   // Generate all dates in range
-  interface ResultItem {
-    createdAt: Date | string;
-    rating: number | null;
-  }
-  const result: ResultItem[] = [];
+  const result: FilledMoodEntry[] = [];
   const currentDate = new Date(startDate);
 
   while (currentDate <= endDate) {
     const dateKey = currentDate.toISOString().split('T')[0];
-    const rating = dataMap.get(dateKey);
+    const existingEntry = dataMap.get(dateKey);
+
     result.push({
-      createdAt: new Date(currentDate),
-      rating: rating !== undefined ? rating : null
+      date: dateKey,
+      averageRating: existingEntry?.averageRating !== undefined ? existingEntry.averageRating : null,
+      _id: existingEntry?._id ?? dateKey,
+      count: existingEntry?.count ?? null
     });
+
+    currentDate.setDate(currentDate.getDate() + 1);
   }
+
+  return result;
 };
 
 export { fillMissingDays };
