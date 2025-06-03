@@ -6,6 +6,54 @@ import { NUM_OF_DAYS } from '../constants/DATE_GRANULARITY.js';
 
 // Utils
 import { fillMissingDays } from './utils/fillMissingDays.ts';
+import { isValidDate } from '../utils/isValidDate.ts';
+
+const getPaginatedMoodRatings = async (page, limit, userId, skip) => {
+  const [ratings, total] = await Promise.all([
+    Mood.find({ userId })
+      .sort({ createdAt: -1 }) // Newest first
+      .skip(skip)
+      .limit(parseInt(limit))
+      .lean(),
+    Mood.countDocuments({ userId })
+  ]);
+
+  return {
+    data: ratings,
+    pagination: {
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(total / limit),
+      totalItems: total
+    }
+  };
+};
+
+const getMoodRatingsByDateRange = async (userId, startDate, endDate) => {
+  const dayRange = 60; // Default day range set to 60 days
+  const lte = (!endDate || endDate === 'undefined') ? new Date() : new Date(endDate); // If endDate doesn't exist, set to current date/time
+  const gte = (!startDate || startDate === 'undefined') ? new Date() : new Date(startDate);
+
+  if (!startDate) {
+    gte.setDate(lte.getDate() - dayRange); // If startDate doesn't exist, set gte to dayRange days ago.
+  }
+
+  // Date validation
+  if (!isValidDate(gte)) throw new Error('Error: startDate is not a valid date');
+  if (!isValidDate(lte)) throw new Error('Error: endDate is not a valid date');
+
+  if (userId === 'undefined') userId = undefined;
+  
+  const moods = await Mood.find({
+    userId,
+    createdAt: {
+      $gte: new Date(startDate), // Greater than or equal to start date
+      $lte: new Date(endDate) // Less than or equal to end date
+    }
+  }).sort({ createdAt: -1 }) // 1 for ascending, -1 for decending
+  .lean();
+  
+  return moods;
+};
 
 const getDailyAverages = async (userId, granularity) => {
   const startDate = new Date();
@@ -140,4 +188,11 @@ const getYearlyAverages = async (userId, granularity) => {
   ]);
 };
 
-export { getDailyAverages, getWeeklyAverages, getMonthlyAverages, getYearlyAverages };
+export {
+  getDailyAverages,
+  getWeeklyAverages,
+  getMonthlyAverages,
+  getYearlyAverages,
+  getMoodRatingsByDateRange,
+  getPaginatedMoodRatings
+};
