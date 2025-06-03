@@ -7,6 +7,26 @@ import { NUM_OF_DAYS } from '../constants/DATE_GRANULARITY.js';
 // Utils
 import { fillMissingDays } from './utils/fillMissingDays.ts';
 
+const getMoodRatingsByDateRange = async (userId, startDate, endDate) => {
+  const dayRange = 60; // Default day range set to 60 days
+  const lte = endDate ? new Date(endDate) : new Date(); // If endDate doesn't exist, set to current date/time
+  const gte = startDate ? new Date(startDate) : new Date();
+
+  if (!startDate) {
+    gte.setDate(lte.getDate() - dayRange); // If startDate doesn't exist, set gte to dayRange days ago.
+  }
+  
+  const moods = await Mood.find({
+    userId,
+    createdAt: {
+      $gte: new Date(startDate), // Greater than or equal to start date
+      $lte: new Date(endDate) // Less than or equal to end date
+    }
+  }).sort({ createdAt: -1 }); // 1 for ascending, -1 for decending
+
+  return moods;
+};
+
 const getDailyAverages = async (userId, granularity) => {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - NUM_OF_DAYS[granularity]);
@@ -140,4 +160,10 @@ const getYearlyAverages = async (userId, granularity) => {
   ]);
 };
 
-export { getDailyAverages, getWeeklyAverages, getMonthlyAverages, getYearlyAverages };
+export {
+  getDailyAverages,
+  getWeeklyAverages,
+  getMonthlyAverages,
+  getYearlyAverages,
+  getMoodRatingsByDateRange
+};

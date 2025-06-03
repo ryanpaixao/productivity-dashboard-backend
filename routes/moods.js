@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   getMoods,
+  getMoodsByDateRange,
   getMoodTrendsDaily,
   getMoodTrendsWeekly,
   getMoodTrendsMonthly,
@@ -14,6 +15,7 @@ const router = express.Router();
 
 // GET
 router.get('/', getMoods);
+router.get('/date-range', getMoodsByDateRange);
 router.get('/trends/daily', getMoodTrendsDaily);
 router.get('/trends/weekly', getMoodTrendsWeekly);
 router.get('/trends/monthly', getMoodTrendsMonthly);

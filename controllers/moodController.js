@@ -1,5 +1,11 @@
 import Mood from '../models/Mood.js';
-import { getDailyAverages, getWeeklyAverages, getMonthlyAverages, getYearlyAverages } from '../services/ratingService.js';
+import {
+  getDailyAverages,
+  getWeeklyAverages,
+  getMonthlyAverages,
+  getYearlyAverages,
+  getMoodRatingsByDateRange
+} from '../services/moodService.js';
 
 import { DATE_GRANULARITY } from '../constants/DATE_GRANULARITY.js';
 
@@ -13,10 +19,27 @@ export const getMoods = async (req, res) => {
   }
 };
 
+// Get Moods by date range
+export const getMoodsByDateRange = async (req, res) => {
+  try {
+    const { startDate, endDate, userId } = req.query;
+
+    const results = await getMoodRatingsByDateRange(
+      userId,
+      startDate,
+      endDate
+    );
+
+    res.status(200).json(results);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // Get Mood Trends Daily
 export const getMoodTrendsDaily = async (req, res) => {
   try {
-    const { userId, granularity = DATE_GRANULARITY.DAILY } = req.query;
+    const { userId, granularity = DATE_GRANULARITY.DAILY } = req.query; // TODO: rm unnecessary granularity params from MoodTrends
     const results = await getDailyAverages(
       userId,
       granularity
