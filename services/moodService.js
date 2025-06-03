@@ -6,15 +6,22 @@ import { NUM_OF_DAYS } from '../constants/DATE_GRANULARITY.js';
 
 // Utils
 import { fillMissingDays } from './utils/fillMissingDays.ts';
+import { isValidDate } from '../utils/isValidDate.ts';
 
 const getMoodRatingsByDateRange = async (userId, startDate, endDate) => {
   const dayRange = 60; // Default day range set to 60 days
-  const lte = endDate ? new Date(endDate) : new Date(); // If endDate doesn't exist, set to current date/time
-  const gte = startDate ? new Date(startDate) : new Date();
+  const lte = (!endDate || endDate === 'undefined') ? new Date() : new Date(endDate); // If endDate doesn't exist, set to current date/time
+  const gte = (!startDate || startDate === 'undefined') ? new Date() : new Date(startDate);
 
   if (!startDate) {
     gte.setDate(lte.getDate() - dayRange); // If startDate doesn't exist, set gte to dayRange days ago.
   }
+
+  // Date validation
+  if (!isValidDate(gte)) throw new Error('Error: startDate is not a valid date');
+  if (!isValidDate(lte)) throw new Error('Error: endDate is not a valid date');
+
+  if (userId === 'undefined') userId = undefined;
   
   const moods = await Mood.find({
     userId,
