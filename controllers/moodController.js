@@ -4,7 +4,8 @@ import {
   getWeeklyAverages,
   getMonthlyAverages,
   getYearlyAverages,
-  getMoodRatingsByDateRange
+  getMoodRatingsByDateRange,
+  getPaginatedMoodRatings
 } from '../services/moodService.js';
 
 import { DATE_GRANULARITY } from '../constants/DATE_GRANULARITY.js';
@@ -29,6 +30,21 @@ export const getMoodsByDateRange = async (req, res) => {
       startDate,
       endDate
     );
+
+    res.status(200).json(results);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Get Moods with paginated ratings
+export const getPaginatedMoods = async (req, res) => {
+  try {
+    const { page = 1, limit = 30, userId } = req.query;
+    const skip = (page - 1) * limit;
+    const check = {page, limit, userId, skip};
+
+    const results = await getPaginatedMoodRatings(page, limit, userId, skip);
 
     res.status(200).json(results);
   } catch (err) {
