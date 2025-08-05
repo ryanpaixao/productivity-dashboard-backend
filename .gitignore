@@ -6,3 +6,6 @@ node_modules
 wants.txt
 **/wants.txt
 rest-test-*.http
+
+# Environment variables
+.env
