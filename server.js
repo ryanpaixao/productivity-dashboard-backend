@@ -16,7 +16,9 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors()); // Allow React frontend to connect
+app.use(cors({
+  origin: process.env.FE_URI,
+})); // Allow React frontend to connect
 app.use(express.json()); // Parse JSON requests
 
 // Test route
