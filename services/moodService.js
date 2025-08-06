@@ -5,8 +5,8 @@ import Mood from '../models/Mood.js';
 import { NUM_OF_DAYS } from '../constants/DATE_GRANULARITY.js';
 
 // Utils
-import { fillMissingDays } from './utils/fillMissingDays.ts';
-import { isValidDate } from '../utils/isValidDate.ts';
+import { fillMissingDays } from './utils/fillMissingDays.js';
+import { isValidDate } from '../utils/isValidDate.js';
 
 const getPaginatedMoodRatings = async (page, limit, userId, skip) => {
   const [ratings, total] = await Promise.all([
@@ -42,7 +42,7 @@ const getMoodRatingsByDateRange = async (userId, startDate, endDate) => {
   if (!isValidDate(lte)) throw new Error('Error: endDate is not a valid date');
 
   if (userId === 'undefined') userId = undefined;
-  
+
   const moods = await Mood.find({
     userId,
     createdAt: {
@@ -50,8 +50,8 @@ const getMoodRatingsByDateRange = async (userId, startDate, endDate) => {
       $lte: new Date(endDate) // Less than or equal to end date
     }
   }).sort({ createdAt: -1 }) // 1 for ascending, -1 for decending
-  .lean();
-  
+    .lean();
+
   return moods;
 };
 
@@ -143,7 +143,7 @@ const getMonthlyAverages = async (userId, granularity) => {
     },
     {
       $project: {
-        year: { $year: { $add: [ '$createdAt', 60 * 1000] } },
+        year: { $year: { $add: ['$createdAt', 60 * 1000] } },
         month: { $month: { $add: ['$createdAt', 60 * 1000] } },
         rating: 1
       }

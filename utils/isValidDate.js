@@ -1,4 +1,4 @@
-const isValidDate = (value: string | Date) => {
+const isValidDate = (value) => {
   if (value instanceof Date) {
     return !isNaN(value.getTime());
   }

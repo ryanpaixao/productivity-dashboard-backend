@@ -1,21 +1,21 @@
 // Utils
-import { isValidDate } from "../../utils/isValidDate.ts";
+import { isValidDate } from "../../utils/isValidDate.js";
 
-interface MoodEntry {
-  _id: string;
-  date: Date; // Can be ISO string or Date object
-  averageRating: number; // Mood rating (1-5)
-  count?: number; // Optional aggregation count
-};
+// interface MoodEntry {
+//   _id: string;
+//   date: Date; // Can be ISO string or Date object
+//   averageRating: number; // Mood rating (1-5)
+//   count?: number; // Optional aggregation count
+// };
 
-interface FilledMoodEntry {
-  date: string;
-  averageRating: number | null;
-  _id: string | null; // Will be null for filled days
-  count: number | null; // Will be null for filled days
-}
+// interface FilledMoodEntry {
+//   date: string;
+//   averageRating: number | null;
+//   _id: string | null; // Will be null for filled days
+//   count: number | null; // Will be null for filled days
+// }
 
-const fillMissingDays = (data: MoodEntry[], startDate: Date) => {
+const fillMissingDays = (data, startDate) => {
   if (data.length === 0) return [];
 
   // Validate Dates
@@ -24,7 +24,7 @@ const fillMissingDays = (data: MoodEntry[], startDate: Date) => {
   if (!areValidDates) throw new Error('Error: End Date should come after Start Date.');
 
   // Create Map with full entry data
-  const dataMap = new Map<string, Omit<MoodEntry, 'date'> & { date: Date }>();
+  const dataMap = new Map();
   data.forEach(entry => {
     const date = typeof entry.date === 'string' ? new Date(entry.date) : entry.date;
     const dateKey = date.toISOString().split('T')[0];
@@ -37,7 +37,7 @@ const fillMissingDays = (data: MoodEntry[], startDate: Date) => {
   });
 
   // Generate all dates in range
-  const result: FilledMoodEntry[] = [];
+  const result = [];
   const currentDate = new Date(startDate);
 
   while (currentDate <= endDate) {
